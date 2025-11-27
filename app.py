@@ -4,7 +4,6 @@ from flask import Flask, render_template, redirect
 from flask_caching import Cache
 
 app = Flask(__name__)
-
 cache = Cache(app, config={"CACHE_TYPE": "simple", "CACHE_DEFAULT_TIMEOUT": 1800})
 
 apps = [
