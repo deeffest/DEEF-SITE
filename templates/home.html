@@ -12,7 +12,7 @@
     <main class="wrap" aria-label="Applications">
         {% for app in apps %}
         <article class="app-card">
-            <h2 class="app-title">{{ app.title }}</h2>
+            <h2 class="app-title" title="{{ app.title }}">{{ app.title }}</h2>
             <p class="app-desc">{{ app.desc }}</p>
             <div class="meta">
                 <span class="badge">{{ app.platforms }}</span>
