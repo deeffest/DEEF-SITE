@@ -8,11 +8,11 @@ cache = Cache(app, config={"CACHE_TYPE": "simple", "CACHE_DEFAULT_TIMEOUT": 1800
 
 apps = [
     {
-        "title": "Youtube Music Desktop Player",
-        "desc": "Turns the YT Music site into a desktop application.",
+        "title": "YouTube Music Desktop Player",
+        "desc": "Turns the YouTube Music site into a desktop application.",
         "platforms": "Windows · Linux",
-        "github": "https://github.com/deeffest/Youtube-Music-Desktop-Player",
-        "repo": "deeffest/Youtube-Music-Desktop-Player",
+        "github": "https://github.com/deeffest/YouTube-Music-Desktop-Player",
+        "repo": "deeffest/YouTube-Music-Desktop-Player",
     },
 ]
 
@@ -89,7 +89,7 @@ def ytmdplayer(asset):
     if asset not in YTMD_ASSETS:
         return "Asset not found", 404
 
-    repo = "deeffest/Youtube-Music-Desktop-Player"
+    repo = "deeffest/YouTube-Music-Desktop-Player"
     url = get_latest_asset_url(repo, YTMD_ASSETS[asset])
     if url:
         return redirect(url)
