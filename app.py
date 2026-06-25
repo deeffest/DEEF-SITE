@@ -1,22 +1,24 @@
 import os
+
 import requests
-from flask import Flask, render_template, redirect
+from flask import Flask, redirect
 from flask_caching import Cache
 
 app = Flask(__name__)
-cache = Cache(app, config={"CACHE_TYPE": "simple", "CACHE_DEFAULT_TIMEOUT": 1800})
-
-apps = [
-    {
-        "title": "YouTube Music Desktop Player",
-        "desc": "Turns the YouTube Music site into a desktop application.",
-        "platforms": "Windows · Linux",
-        "github": "https://github.com/deeffest/YouTube-Music-Desktop-Player",
-        "repo": "deeffest/YouTube-Music-Desktop-Player",
+cache = Cache(
+    app,
+    config={
+        "CACHE_TYPE": "filesystem",
+        "CACHE_DIR": "/tmp/flask_cache",
+        "CACHE_DEFAULT_TIMEOUT": 1800,
     },
-]
+)
 
-YTMD_ASSETS = {
+APPS = {
+    "ytmdplayer": "deeffest/YouTube-Music-Desktop-Player",
+}
+
+ASSETS = {
     "latest_deb": ".deb",
     "latest_rpm": ".rpm",
     "latest_setup_exe": "Win32-Setup.exe",
@@ -25,75 +27,39 @@ YTMD_ASSETS = {
 }
 
 
-def get_latest_release(repo: str) -> str:
-    cache_key = f"version_{repo}"
-    cached = cache.get(cache_key)
-    if cached:
-        return cached
-
-    url = f"https://api.github.com/repos/{repo}/releases/latest"
-    headers = {}
+@cache.memoize()
+def get_asset_url(repo: str, suffix: str) -> str | None:
     token = os.getenv("GITHUB_TOKEN")
-    if token:
-        headers["Authorization"] = f"token {token}"
+    headers = {"Authorization": f"token {token}"} if token else {}
     try:
-        r = requests.get(url, headers=headers, timeout=10)
+        r = requests.get(
+            f"https://api.github.com/repos/{repo}/releases/latest",
+            headers=headers,
+            timeout=10,
+        )
         r.raise_for_status()
-        version = r.json().get("tag_name", "unknown")
-        cache.set(cache_key, version)
-        return version
+        for asset in r.json().get("assets", []):
+            if suffix in asset["name"]:
+                return asset["browser_download_url"]
+        app.logger.warning("No asset matching %r in %s", suffix, repo)
     except Exception:
-        return "unknown"
-
-
-def get_latest_asset_url(repo: str, asset_match: str) -> str:
-    cache_key = f"asset_{repo}_{asset_match}"
-    cached = cache.get(cache_key)
-    if cached:
-        return cached
-
-    url = f"https://api.github.com/repos/{repo}/releases/latest"
-    headers = {}
-    token = os.getenv("GITHUB_TOKEN")
-    if token:
-        headers["Authorization"] = f"token {token}"
-    try:
-        r = requests.get(url, headers=headers, timeout=10)
-        r.raise_for_status()
-        assets = r.json().get("assets", [])
-        for asset in assets:
-            if asset_match in asset["name"]:
-                asset_url = asset["browser_download_url"]
-                cache.set(cache_key, asset_url)
-                return asset_url
-    except Exception:
-        return None
+        app.logger.exception("GitHub API request failed for %s", repo)
     return None
 
 
 @app.route("/")
-@cache.cached()
 def home():
-    apps_with_versions = []
-    for app_info in apps:
-        version = get_latest_release(app_info["repo"])
-        app_copy = app_info.copy()
-        app_copy["version"] = version
-        apps_with_versions.append(app_copy)
-    return render_template("home.html", apps=apps_with_versions)
+    return redirect("https://github.com/deeffest")
 
 
-@app.route("/ytmdplayer/<asset>")
-@cache.cached()
-def ytmdplayer(asset):
-    if asset not in YTMD_ASSETS:
-        return "Asset not found", 404
-
-    repo = "deeffest/YouTube-Music-Desktop-Player"
-    url = get_latest_asset_url(repo, YTMD_ASSETS[asset])
-    if url:
-        return redirect(url)
-    return "File not found", 404
+@app.route("/<app>/<asset>")
+def get_app(app, asset):
+    repo = APPS.get(app)
+    suffix = ASSETS.get(asset)
+    if not repo or not suffix:
+        return "Not found", 404
+    url = get_asset_url(repo, suffix)
+    return redirect(url) if url else ("File not found", 404)
 
 
 if __name__ == "__main__":
