@@ -24,6 +24,8 @@ ASSETS = {
     "latest_setup_exe": "Win32-Setup.exe",
     "latest_tar_xz": ".tar.xz",
     "latest_rar": ".rar",
+    "qt5_latest_tar_xz": "Linux-Qt5.tar.xz",
+    "qt5_latest_rar": "Win32-Qt5.rar",
 }
 
 
