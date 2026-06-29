@@ -19,18 +19,18 @@ APPS = {
 }
 
 ASSETS = {
-    "latest_deb": ".deb",
-    "latest_rpm": ".rpm",
+    "latest_deb": "Linux-amd64.deb",
+    "latest_rpm": "Linux-x86_64.rpm",
     "latest_setup_exe": "Win32-Setup.exe",
-    "latest_tar_xz": ".tar.xz",
-    "latest_rar": ".rar",
+    "latest_tar_xz": "Linux.tar.xz",
+    "latest_rar": "Win32.rar",
     "qt5_latest_tar_xz": "Linux-Qt5.tar.xz",
     "qt5_latest_rar": "Win32-Qt5.rar",
 }
 
 
 @cache.memoize()
-def get_asset_url(repo: str, suffix: str) -> str | None:
+def get_asset_url(repo: str, filename: str) -> str | None:
     token = os.getenv("GITHUB_TOKEN")
     headers = {"Authorization": f"token {token}"} if token else {}
     try:
@@ -41,9 +41,9 @@ def get_asset_url(repo: str, suffix: str) -> str | None:
         )
         r.raise_for_status()
         for asset in r.json().get("assets", []):
-            if suffix in asset["name"]:
+            if asset["name"].endswith(filename):
                 return asset["browser_download_url"]
-        app.logger.warning("No asset matching %r in %s", suffix, repo)
+        app.logger.warning("No asset matching %r in %s", filename, repo)
     except Exception:
         app.logger.exception("GitHub API request failed for %s", repo)
     return None
@@ -57,10 +57,10 @@ def home():
 @app.route("/<app>/<asset>")
 def get_app(app, asset):
     repo = APPS.get(app)
-    suffix = ASSETS.get(asset)
-    if not repo or not suffix:
+    filename = ASSETS.get(asset)
+    if not repo or not filename:
         return "Not found", 404
-    url = get_asset_url(repo, suffix)
+    url = get_asset_url(repo, filename)
     return redirect(url) if url else ("File not found", 404)
 
 
