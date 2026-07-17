@@ -21,11 +21,11 @@ APPS = {
 ASSETS = {
     "latest_deb": "Linux-amd64.deb",
     "latest_rpm": "Linux-x86_64.rpm",
-    "latest_setup_exe": "Win32-Setup.exe",
     "latest_tar_xz": "Linux.tar.xz",
+    "latest_qt5_tar_xz": "Linux-Qt5.tar.xz",
+    "latest_setup_exe": "Win32-Setup.exe",
     "latest_rar": "Win32.rar",
-    "qt5_latest_tar_xz": "Linux-Qt5.tar.xz",
-    "qt5_latest_rar": "Win32-Qt5.rar",
+    "latest_qt5_rar": "Win32-Qt5.rar",
 }
 
 
